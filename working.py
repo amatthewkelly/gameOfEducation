@@ -6,18 +6,20 @@ class Neighborhood(object):
 	def __init__(self):
 		super(Neighborhood, self).__init__()
 		# self.nl = open('Data Files/neighborHoodLayout.txt').read()
-		self.nl = [20, 20]  # this is our neighborhood layout (grid)
+		self.nl = [30, 30]  # this is our neighborhood layout (grid)
 		# the below are racial diversity thresholds. The first variable in each is the amount
 		# of diversity you require to live in that space (positive diversity), and the latter 
 		# is the level of diversity at which you will leave (negative diversity).
-		self.diverseReqToLeave = [0, 1]
-		self.diverseReqToEnter = [0, 1]
+		self.diverseReqToLeave = [.2, .7]
+		self.diverseReqToEnter = [.2, .7]
 		self.uniqID = 0  # iterate to give people unique ID #s
+		self.percDiversCare = 0.0
+		self.racePercentages = [.33, .33]  # white, black, the rest are empty spots
 		# self.tester = [[.3, .7, .3], [.7, .3, .1], [.7, .1, .7]]
 		self.main = []
 		self.createPopulation()
 		self.output(self.main)
-		for a in xrange(1):
+		for a in xrange(20):
 			self.moveThroughTime()
 		self.output(self.main)
 
@@ -31,14 +33,21 @@ class Neighborhood(object):
 
 	def createPerson(self, a, b):
 		x = np.random.random()
-		if x < .25:
+		div = np.random.random()
+		if div < self.percDiversCare:
+			careDiv = True
+		else:
+			careDiv = False
+		if x < self.racePercentages[0]:
 			person = {
 				'race': 'black',
+				'careDiv': careDiv,
 				'ID': self.uniqID
 				}
-		elif x >= .25 and x < .5:
+		elif x >= self.racePercentages[0] and x < self.racePercentages[0] + self.racePercentages[1]:
 			person = {
 				'race': 'white',
+				'careDiv': careDiv,
 				'ID': self.uniqID
 				}
 		else:
@@ -110,13 +119,17 @@ class Neighborhood(object):
 			wantToMove = False
 			percSameReqMin = self.diverseReqToLeave[1]
 			percDifReqMin = self.diverseReqToLeave[0]
-			if percSame < percSameReqMin or percDif < percDifReqMin:
+			if person['careDiv'] and percDif < percDifReqMin:
+				wantToMove = True
+			elif percSame < percSameReqMin:
 				wantToMove = True
 		elif kind == 'enter':
 			wantToMove = True
 			percSameReqMin = self.diverseReqToEnter[1]
 			percDifReqMin = self.diverseReqToEnter[0]
-			if percSame < percSameReqMin or percDif < percDifReqMin:
+			if person['careDiv'] and percDif < percDifReqMin:
+				wantToMove = False
+			elif percSame < percSameReqMin:
 				wantToMove = False
 		return wantToMove
 
@@ -130,6 +143,10 @@ class Neighborhood(object):
 					result = 'B'
 				elif p.get('race') == 'white':
 					result = 'W'
+				# if p.get('careDiv') == True:
+				# 	result = 'D'
+				# elif p.get('careDiv') == False:
+				# 	result = 'R'
 				line.append(result)
 			print ' '.join(line)
 		print ''
