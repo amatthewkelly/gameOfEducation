@@ -6,6 +6,7 @@ class Neighborhood(object):
 		super(Neighborhood, self).__init__()
 		self.population = open('Data Files/neighborHoodLayout.txt').read()
 		print self.population
+		print 'ethan'
 
 
 def main():
