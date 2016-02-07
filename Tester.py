@@ -32,10 +32,7 @@ class HeatFlow(object):
 		for x in xrange(units[0]):
 			column = []
 			for y in xrange(units[1]):
-				pillar = []
-				for z in xrange(units[2]):
-					newItem = self.createInitiatalItem([x, y, z])
-					pillar.append(newItem)
+				newItem = self.createInitiatalItem([x, y, z])
 				column.append(pillar)
 			self.main.append(column)
 
