@@ -4,8 +4,8 @@ class Neighborhood(object):
 	"""docstring for Neighborhood"""
 	def __init__(self):
 		super(Neighborhood, self).__init__()
-		self.nl = open('Data Files/neighborHoodLayout.txt').read()
-		self.nl = [3, 3]
+		# self.nl = open('Data Files/neighborHoodLayout.txt').read()
+		self.nl = [1, 3]  # this is our neighborhood layout (grid)
 		self.main = []
 		self.createPopulation()
 		self.output(self.main)
@@ -48,9 +48,17 @@ class Neighborhood(object):
 		self.main = temp
 
 	def wantsToMove(self, person, r, c):
-		rows = [a for a in xrange(r-1, r+2, 2) if a > 0 and a < self.nl[0]+1]
-		cols = [a for a in xrange(c-1, c+2, 2) if a > 0 and a < self.nl[1]+1]
-		print rows, cols
+		neighbors = []
+		for row in xrange(r-1, r+2):
+			for col in xrange(c-1, c+2):
+				if row > -1 and row < self.nl[0]:
+					if col > -1 and col < self.nl[1]:
+						if row != r or col != c:
+							person = self.main[row][col]
+							if person != {}:
+								neighbors.append(person)
+		print neighbors
+
 		return person
 
 
