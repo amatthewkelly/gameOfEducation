@@ -12,6 +12,7 @@ class Neighborhood(object):
 =======
 		print 'testerasdfasf'
 		print 'asdfasdfasldf'
+		print 'another testerasdfasf'
 
 
 >>>>>>> c69408b0b0c15f655fd1927ab86fddc56d6b70f9
