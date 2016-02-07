@@ -8,6 +8,7 @@ class Neighborhood(object):
 		print self.population
 		print 'ethan'
 		print 'testerasdfasf'
+		print 'asdfasdfasldf'
 
 
 def main():
