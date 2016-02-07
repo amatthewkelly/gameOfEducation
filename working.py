@@ -8,6 +8,7 @@ class Neighborhood(object):
 		print self.population
 		print 'ethan'
 		print 'aaron'
+		print 'test1'
 
 def main():
 	ex = Neighborhood()
