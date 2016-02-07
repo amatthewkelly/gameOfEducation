@@ -7,9 +7,15 @@ class Neighborhood(object):
 		self.population = open('Data Files/neighborHoodLayout.txt').read()
 		print self.population
 		print 'ethan'
-		print 'aaron'
-		print 'test1'
-		print 'is this working?'
+		print 'testerasdfasf'
+		print 'asdfasdfasldf'
+<<<<<<< HEAD
+		print 'hadsflasdf'
+		print 'fasdlfk'
+=======
+		print 'another testerasdfasf'
+>>>>>>> master
+
 
 def main():
 	ex = Neighborhood()
