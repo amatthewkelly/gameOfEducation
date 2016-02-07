@@ -5,11 +5,15 @@ class Neighborhood(object):
 	def __init__(self):
 		super(Neighborhood, self).__init__()
 		# self.nl = open('Data Files/neighborHoodLayout.txt').read()
-		self.nl = [1, 3]  # this is our neighborhood layout (grid)
+		self.nl = [9, 9]  # this is our neighborhood layout (grid)
+		self.diversReqToMove = 1  # if percent neighbors of same race less than this
+								   # then wants to move.
+		self.uniqID = 0  # iterate to give people unique ID #s
 		self.main = []
 		self.createPopulation()
 		self.output(self.main)
-		self.moveThroughTime()
+		for a in xrange(30):
+			self.moveThroughTime()
 		self.output(self.main)
 
 	def createPopulation(self):
@@ -24,28 +28,41 @@ class Neighborhood(object):
 		x = np.random.random()
 		if x < .25:
 			person = {
-				'race': 'black'
+				'race': 'black',
+				'ID': self.uniqID
 				}
 		elif x >= .25 and x < .5:
 			person = {
-				'race': 'white'
+				'race': 'white',
+				'ID': self.uniqID
 				}
 		else:
 			person = {}
+		self.uniqID += 1
 		return person
 
 	def moveThroughTime(self):
-		temp = []
+		movers = []
+		openSpots = []
+		# checks who wants to move and finds all open spots...
 		for r, row in enumerate(self.main):
-			column = []
 			for c, person in enumerate(row):
 				if person != {}:
-					new = self.wantsToMove(person, r, c)
+					wantToMove = self.wantsToMove(person, r, c)
+					if wantToMove:
+						self.main[r][c] = {}
+						openSpots.append([r, c])
+						movers.append(person)
 				else:
-					new = {}
-				column.append(new)
-			temp.append(column)
-		self.main = temp
+					openSpots.append([r, c])
+
+		# moves the people...
+		while len(movers) != 0:
+			pers = int(np.floor(np.random.random()*len(movers)))
+			spot = int(np.floor(np.random.random()*len(openSpots)))
+			self.main[openSpots[spot][0]][openSpots[spot][1]] = movers[pers]
+			movers.pop(pers)
+			openSpots.pop(spot)
 
 	def wantsToMove(self, person, r, c):
 		neighbors = []
@@ -54,13 +71,19 @@ class Neighborhood(object):
 				if row > -1 and row < self.nl[0]:
 					if col > -1 and col < self.nl[1]:
 						if row != r or col != c:
-							person = self.main[row][col]
-							if person != {}:
-								neighbors.append(person)
-		print neighbors
-
-		return person
-
+							p = self.main[row][col]
+							if p != {}:
+								neighbors.append(p)
+		race = []
+		for n in neighbors:
+			if n['race'] == person['race']:
+				race.append(1)
+			else:
+				race.append(0)
+		wantToMove = False
+		if np.average(race) < self.diversReqToMove:
+			wantToMove = True
+		return wantToMove
 
 	def interaction(self, person):
 		pass
