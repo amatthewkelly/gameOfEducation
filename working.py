@@ -4,18 +4,26 @@ class Neighborhood(object):
 	"""docstring for Neighborhood"""
 	def __init__(self):
 		super(Neighborhood, self).__init__()
-		self.population = open('Data Files/neighborHoodLayout.txt').read()
-		print self.population
-		print 'ethan'
-<<<<<<< HEAD
-		print ' ////sdf ;'
-=======
-		print 'testerasdfasf'
-		print 'asdfasdfasldf'
-		print 'another testerasdfasf'
+		self.neighborhoodLayout = open('Data Files/neighborHoodLayout.txt').read()
+		self.neighborhoodLayout = [1, 2]
+		self.main = []
+		self.createPopulation()
+		print self.main
 
+	def createPopulation(self):
+		for a in xrange(self.neighborhoodLayout[0]):
+			column = []
+			for b in xrange(self.neighborhoodLayout[1]):
+				person  = self.createPerson(a, b)
+				column.append(person)
+			self.main.append(column)
 
->>>>>>> c69408b0b0c15f655fd1927ab86fddc56d6b70f9
+	def createPerson(self, a, b):
+		person = {
+			'race': 'black'
+			}
+		return person
+
 def main():
 	ex = Neighborhood()
 
