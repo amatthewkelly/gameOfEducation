@@ -75,12 +75,20 @@ class Neighborhood(object):
 			socVal = int(np.floor(np.random.random()*len(self.popStats['blackSocDistr'])))
 			income = self.popStats['blackSocDistr'][socVal]
 			person = {
-				'race': 'black',
-				'careDiv': careDiv,
-				'ID': self.popStats['uniqID'],
-				'income': income,
-				'neighborhood': neighborhood,
-				'absLoc': 0
+				'race': 'black',  # never changes (obviously)
+				'careDiv': careDiv,  # also never changes, though we could factor in apathy here later,
+									 # I imagine this factor will general map to socioEconomic
+				'ID': self.popStats['uniqID'],  # like a SSN
+				'income': income,  # generated for starting population from skewed gaussian with assumption
+								   # that whites are wealthier than blacks. From there it updates. Assumption
+								   # for now is that this update is based on neighborhood socioEconomic, not
+								   # immediate neighbors
+				'neighborhood': neighborhood,  # not currently used for computation, so at end this reflects
+											   # starting neighborhood. As such it does not update throughout
+											   # so is not a realiable marker of current pos (see self.city, and
+											   # other companion layout variables for location reference)
+				'age': 0  # should iterate with each cycle, we can imagine age specific variables that would
+						  # make this important, especially if we dive into families
 				}
 		elif x >= self.popStats['racePercentages'][0] and x < self.popStats['racePercentages'][0] + self.popStats['racePercentages'][1]:
 			socVal = int(np.floor(np.random.random()*len(self.popStats['whiteSocDistr'])))
@@ -90,7 +98,8 @@ class Neighborhood(object):
 				'careDiv': careDiv,
 				'ID': self.popStats['uniqID'],
 				'income': income,
-				'neighborhood': neighborhood
+				'neighborhood': neighborhood,
+				'age': 0
 				}
 		else:
 			person = {}
@@ -100,7 +109,7 @@ class Neighborhood(object):
 	def moveThroughTime(self):
 		movers = []
 		openSpots = []
-		spotsToBeOpened = []  # keeps spots to be cleared until iteration done
+		spotsToBeOpened = []  # keeps spots that will be cleared until they can be reinserted
 		# checks who wants to move and finds all open spots...
 		for n, neigh in enumerate(self.city):
 			for r, row in enumerate(neigh):
@@ -115,20 +124,23 @@ class Neighborhood(object):
 								movers.append(person)
 						else:
 							openSpots.append([n, r, c])
+		# clears out the old spots in the map
 		for n, r, c in spotsToBeOpened:
 			self.city[n][r][c] = {}
 		shuffle(openSpots)  # randomizes the orderin of the move locations
 		shuffle(movers)  # ibid for movers
 		noAcceptableSpot = 0
-		# moves the people...
+		# moves the people, after checking for an acceptable new spot...
 		while len(movers) != 0:
 			newSpot = None
 			pers = int(np.floor(np.random.random()*len(movers)))
+			# checks available spots for acceptable one...
 			for spot in openSpots:
 				moveWanted, neighbors = self.wantToMove(movers[pers], spot[0], spot[1], spot[2], 'enter')
 				if moveWanted:
 					newSpot = spot
 					break
+			# if no available spot is acceptable, assigns an available spot at random (even though it isn't acceptable)
 			if newSpot is None:
 				noAcceptableSpot += 1
 				spot = int(np.floor(np.random.random()*len(openSpots)))
@@ -139,32 +151,17 @@ class Neighborhood(object):
 		print 'No good spots #:', noAcceptableSpot
 
 	def wantToMove(self, person, n1, r, c, kind):
-		# print person, r, c, n1, self.city[n1][r][c]
 		neighbors = []
-		test = []
-		test1 = []
 		for row in xrange(r-1, r+2):
 			for col in xrange(c-1, c+2):
 				if row > -1 and row < self.cityBuild['neighborHoodLayout'][0]:
 					if col > -1 and col < self.cityBuild['neighborHoodLayout'][1]:
 						if row != r or col != c:
-							# print col, row
-							# print 'here', type(self.city[n1][row])
-							test1.append([row, col])
-							# print n1
-							# print self.city[n1]
-							try:
-								p = self.city[n1][row][col]
-							except:
-								print r, c, n1
-								print self.city[n1][r][c]
-								raise EOFError
+							p = self.city[n1][row][col]
 							if p != {}:
 								neighbors.append(p)
-								test.append([row, col])
 		race = []
 		for n in neighbors:
-			# print n
 			if n is not None:
 				if n['race'] == person['race']:
 					race.append(1)
