@@ -1,5 +1,6 @@
 import numpy as np
 import json
+# import matplotlib.pyplot as plt 
 from random import shuffle
 
 class Neighborhood(object):
@@ -16,15 +17,18 @@ class Neighborhood(object):
 		self.uniqID = 0  # iterate to give people unique ID #s
 		self.percDiversCare = 0.0
 		self.racePercentages = [.33, .33]  # white, black, the rest are empty spots
+		self.wealthIndexPeakByRace = [6, 4]  # white, black (out of 10, 9 heightest 0 lowest)
+		self.blackSocDistr = [b for b in [max(np.random.normal(loc=-2)+5, 0) for a in xrange(1000)] if b < 10]
+		self.whiteSocDistr = [b for b in [max(np.random.normal(loc=2)+5, 0) for a in xrange(1000)] if b < 10]
 		self.streets = [[6,7,8,20,21,22], [10,11,12]]
 		# self.streets = [[],[]]
 
 		self.main = []
 		self.createPopulation(new=True)
-		self.output(self.main)
-		for a in xrange(10):
-			self.moveThroughTime()
-		self.output(self.main)
+		# self.output(self.main)
+		# for a in xrange(10):
+		# 	self.moveThroughTime()
+		# self.output(self.main)
 
 	def createPopulation(self, new=False):
 		if new:
@@ -49,12 +53,14 @@ class Neighborhood(object):
 		else:
 			careDiv = False
 		if x < self.racePercentages[0]:
+			socVal = np.random.random()*len(self.blackSocDistr)
 			person = {
 				'race': 'black',
 				'careDiv': careDiv,
 				'ID': self.uniqID
 				}
 		elif x >= self.racePercentages[0] and x < self.racePercentages[0] + self.racePercentages[1]:
+			socVal = np.random.random()*len(self.whiteSocDistr)
 			person = {
 				'race': 'white',
 				'careDiv': careDiv,
