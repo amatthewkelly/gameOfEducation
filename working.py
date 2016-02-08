@@ -9,9 +9,9 @@ class Neighborhood(object):
 		super(Neighborhood, self).__init__()
 		# self.cityBuild['neighborHoodLayout'] = open('Data Files/neighborHoodLayout.txt').read()
 		self.cityBuild = {
-			'neighborHoodLayout': [14, 14],  # this is our neighborhood layout (grid)
-			'cityGrid': [3, 5],  # this is our city layout (grid)
-			'streets': [[4, 9], [4, 9]]  # specifies street locations within neighborhoods (row, column)
+			'neighborHoodLayout': [11, 11],  # this is our neighborhood layout (grid)
+			'cityGrid': [3, 3],  # this is our city layout (grid)
+			'streets': [[3, 7], [3, 7]]  # specifies street locations within neighborhoods (row, column)
 			}
 		self.popStats = {
 			# the below are racial diversity thresholds. The first variable in each is the amount
