@@ -1,4 +1,5 @@
 import numpy as np
+import json
 from random import shuffle
 
 class Neighborhood(object):
@@ -10,31 +11,35 @@ class Neighborhood(object):
 		# the below are racial diversity thresholds. The first variable in each is the amount
 		# of diversity you require to live in that space (positive diversity), and the latter 
 		# is the level of diversity at which you will leave (negative diversity).
-		self.diverseReqToLeave = [.2, .7]
-		self.diverseReqToEnter = [.2, .7]
+		self.diverseReqToLeave = [.2, .4]
+		self.diverseReqToEnter = [.2, .4]
 		self.uniqID = 0  # iterate to give people unique ID #s
-		self.percDiversCare = 0.1
+		self.percDiversCare = 0.0
 		self.racePercentages = [.33, .33]  # white, black, the rest are empty spots
-		self.streets = [[6,7,8], [10,11,12]]
+		self.streets = [[6,7,8,20,21,22], [10,11,12]]
 		# self.streets = [[],[]]
-		# self.tester = [[.3, .7, .3], [.7, .3, .1], [.7, .1, .7]]
+
 		self.main = []
-		self.createPopulation()
+		self.createPopulation(new=True)
 		self.output(self.main)
 		for a in xrange(10):
 			self.moveThroughTime()
 		self.output(self.main)
 
-	def createPopulation(self):
-		for a in xrange(self.nl[0]):
-			column = []
-			for b in xrange(self.nl[1]):
-				if a not in self.streets[0] and b not in self.streets[1]:
-					person  = self.createPerson(a, b)  # option for static testing ", self.tester[a][b]"
-				else:
-					person = None
-				column.append(person)
-			self.main.append(column)
+	def createPopulation(self, new=False):
+		if new:
+			for a in xrange(self.nl[0]):
+				column = []
+				for b in xrange(self.nl[1]):
+					if a not in self.streets[0] and b not in self.streets[1]:
+						person  = self.createPerson(a, b)  # option for static testing ", self.tester[a][b]"
+					else:
+						person = None
+					column.append(person)
+				self.main.append(column)
+			json.dump(self.main, open("testStartPopulation.txt", 'w'))
+		else:
+			self.main = json.load(open("testStartPopulation.txt"))
 
 	def createPerson(self, a, b):
 		x = np.random.random()
@@ -148,14 +153,14 @@ class Neighborhood(object):
 				result = ' '
 				if p is None:
 					result = '.'
-				# elif p.get('race') == 'black':
-				# 	result = 'B'
-				# elif p.get('race') == 'white':
-				# 	result = 'W'
-				elif p.get('careDiv') == True:
-					result = 'D'
-				elif p.get('careDiv') == False:
-					result = 'R'
+				elif p.get('race') == 'black':
+					result = 'B'
+				elif p.get('race') == 'white':
+					result = 'W'
+				# elif p.get('careDiv') == True:
+				# 	result = 'D'
+				# elif p.get('careDiv') == False:
+				# 	result = 'R'
 				line.append(result)
 			print ' '.join(line)
 		print ''
