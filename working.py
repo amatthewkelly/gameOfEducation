@@ -8,41 +8,53 @@ class Neighborhood(object):
 	def __init__(self):
 		super(Neighborhood, self).__init__()
 		# self.cityBuild['neighborHoodLayout'] = open('Data Files/neighborHoodLayout.txt').read()
-		self.iterations = 1
+		self.iterations = 100
+		self.movingThreshold = 40000
 		self.cityBuild = {
 			'neighborHoodLayout': [11, 11],  # this is our neighborhood layout (grid)
-			'cityGrid': [1, 3],  # this is our city layout (grid)
-			'streets': [[3, 7], [3, 7]]  # specifies street locations within neighborhoods (row, column)
+			'cityGrid': [3, 3],  # this is our city layout (grid)
+			'streets': []  # specifies street locations within neighborhoods ([row], [column])
 			}
 		self.popStats = {
 			# the below are racial diversity thresholds. The first variable in each is the amount
 			# of diversity you require to live in that space if you care about diversity (positive diversity), and the latter 
 			# is the level of diversity at which you will leave if you don't care about diversity (negative diversity).
-			'diverseReqToLeave': [.2, .7],
-			'diverseReqToEnter': [.2, .7],
+			'diverseReqToLeave': [.2, .5],
+			'diverseReqToEnter': [.2, .5],
 			'uniqID': 0,  # iterate to give people unique ID #s
 			'percDiversCare': 0.0,  # percentage of people who care about diversity
 			'racePercentages': [.33, .33],  # white, black, the rest are empty spots
 			'wealthIndexPeakByRace': [6, 4],  # white, black (out of 10, 9 heightest 0 lowest)
 			# the below distributions are skewed normal distributions for blacks and whites.
-			'blackSocDistr': [int(b*100000) for b in [max(np.random.normal(loc=-2)+5, 0) for a in xrange(1000)] if b < 10],
-			'whiteSocDistr': [int(b*100000) for b in [max(np.random.normal(loc=2)+5, 0) for a in xrange(1000)] if b < 10]
+			'blackSocDistr': [int(b*100000) for b in [max(np.random.normal(loc=-3)+5, 0) for a in xrange(1000)] if b < 10],
+			'whiteSocDistr': [int(b*100000) for b in [max(np.random.normal(loc=3)+5, 0) for a in xrange(1000)] if b < 10]
 			}
 		# the below places streets into a conveninet format for latter calculations...
-		self.cityLayout = [[self.cityBuild['streets'] for b in xrange(
-			self.cityBuild['cityGrid'][1]
-			)] for a in xrange(self.cityBuild['cityGrid'][0])]
+		self.cityLayout = [[[
+			self.cityBuild['streets'], [2+(b*3) for b in xrange((self.cityBuild['neighborHoodLayout'][0]-2)/3)]
+			] for b in xrange(
+				self.cityBuild['cityGrid'][1]
+				)]for a in xrange(self.cityBuild['cityGrid'][0])]
 		self.city = []  # the main array for holding the current population state
+		self.neighborhoodData = []
 		self.createPopulation(new=True)  # if new is False, will use the saved population
 		self.output(self.city, write=False) # prints the current state of the city
+		first = True
 		for a in xrange(self.iterations):
+			self.tester = []
 			self.moveThroughTime()
-		# self.output(self.city) # prints the current state of the city
+			if first:
+				first = False
+				print self.neighborhoodData
+		print self.neighborhoodData
+		print max(self.tester), min(self.tester)
+		self.output(self.city) # prints the current state of the city
 
 	def createPopulation(self, new=False):
 		layoutIndex = 0
 		if new:
 			for n in xrange(np.sum([len(a) for a in self.cityLayout])):
+				self.neighborhoodData.append({})
 				cityIndex = 0
 				streets = None
 				for i, a in enumerate(self.cityLayout):
@@ -112,13 +124,15 @@ class Neighborhood(object):
 		openSpots = []
 		spotsToBeOpened = []  # keeps spots that will be cleared until they can be reinserted
 		# checks who wants to move and finds all open spots...
+		for n in xrange(len(self.city)):
+			self.updateNeighborHoodStats(n)
 		for n, neigh in enumerate(self.city):
 			for r, row in enumerate(neigh):
 				for c, person in enumerate(row):
 					if person is not None:
 						if person != {}:
 							moveWanted, neighbors = self.wantToMove(person, n, r, c, 'leave')
-							self.city[n][r][c] = self.updateValuesFromSorrounding(person, neighbors, r, c)
+							self.city[n][r][c] = self.updateValuesFromArea(person, n)
 							if moveWanted:
 								spotsToBeOpened.append([n, r, c])
 								openSpots.append([n, r, c])
@@ -149,12 +163,12 @@ class Neighborhood(object):
 			self.city[newSpot[0]][newSpot[1]][newSpot[2]] = movers[pers]
 			openSpots.remove(newSpot)
 			movers.pop(pers)
-		print 'No good spots #:', noAcceptableSpot
+		# print 'No good spots #:', noAcceptableSpot
 
 	def wantToMove(self, person, n1, r, c, kind):
 		neighbors = []
-		for row in xrange(r-1, r+2):
-			for col in xrange(c-1, c+2):
+		for row in xrange(r-2, r+3):
+			for col in xrange(c-2, c+3):
 				if row > -1 and row < self.cityBuild['neighborHoodLayout'][0]:
 					if col > -1 and col < self.cityBuild['neighborHoodLayout'][1]:
 						if row != r or col != c:
@@ -170,6 +184,7 @@ class Neighborhood(object):
 					race.append(0)
 		percSame = np.average(race)
 		percDif = 1-percSame
+		# print percSame/float(self.popStats['diverseReqToEnter'][1]), percDif/float(self.popStats['diverseReqToEnter'][0])
 		if kind == 'leave':
 			wantToMove = False
 			percSameReqMin = self.popStats['diverseReqToLeave'][1]
@@ -178,6 +193,8 @@ class Neighborhood(object):
 				wantToMove = True
 			elif percSame < percSameReqMin:
 				wantToMove = True
+			if person['income'] < self.movingThreshold:
+				wantToMove = False
 		elif kind == 'enter':
 			wantToMove = True
 			percSameReqMin = self.popStats['diverseReqToEnter'][1]
@@ -186,11 +203,34 @@ class Neighborhood(object):
 				wantToMove = False
 			elif percSame < percSameReqMin:
 				wantToMove = False
+			if person['income'] < self.neighborhoodData[n1]['socio']:
+				wantToMove = False
 		return wantToMove, neighbors
 
-	def updateValuesFromSorrounding(self, person, neighbors, r, c):
-		# for n in neighbors:
-		# 	print n
+	def movingFitnessFunction(self, race, socio):
+		pass
+
+	def updateNeighborHoodStats(self, n):
+		socVals = []
+		raceVals = []
+		for row in self.city[n]:
+			for per in row:
+				if per is not None and per != {}:
+					socVals.append(per['income'])
+					if per['race'] == 'black':
+						raceVals.append(1)
+					else:
+						raceVals.append(0)
+		self.neighborhoodData[n]['socio'] = int(np.mean(socVals))
+		self.neighborhoodData[n]['percBlack'] = int(1000*np.mean(raceVals))/float(1000)
+
+	def updateValuesFromArea(self, person, n):
+		nSoc = self.neighborhoodData[n]['socio']
+		pSoc = int(person['income'])
+		newSoc = nSoc*((pSoc/float(max(nSoc, 1))-1)*.02+1)
+		self.tester.append(newSoc)
+		# print float(max(nSoc, 1))
+		person['income'] = newSoc
 		return person
 
 	def output(self, state, write=False):
