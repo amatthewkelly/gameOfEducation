@@ -8,23 +8,23 @@ class Neighborhood(object):
 	def __init__(self):
 		super(Neighborhood, self).__init__()
 		# self.cityBuild['neighborHoodLayout'] = open('Data Files/neighborHoodLayout.txt').read()
-		self.iterations = 25
+		self.iterations = 30
 		self.movingThreshold = 60000
 		self.cityBuild = {
 			'neighborHoodLayout': [11, 11],  # this is our neighborhood layout (grid)
-			'cityGrid': [3, 3],  # this is our city layout (grid)
+			'cityGrid': [3, 5],  # this is our city layout (grid)
 			'streets': []  # specifies street locations within neighborhoods ([row], [column])
 			}
 		self.popStats = {
 			'diverseReqToLeave': {
-				'positive': .3,  # amount of diversity you require to live in that space if you care about diversity (positive diversity)
+				'positive': .5,  # amount of diversity you require to live in that space if you care about diversity (positive diversity)
 				'neighbors': .5,  # level of diversity at which you will leave if you don't care about diversity (negative diversity)
 				'neighborhood': .3  # diversity required of your neighborhood (negative diversity)
 				},
 			'diverseReqToEnter': {
-				'positive': .3,
-				'neighbors': .6,
-				'neighborhood': .4
+				'positive': .5,
+				'neighbors': .5,
+				'neighborhood': .3
 				},
 			'uniqID': 0,  # iterate to give people unique ID #s
 			'percDiversCare': 0.0,  # percentage of people who care about diversity
@@ -42,21 +42,31 @@ class Neighborhood(object):
 				)]for a in xrange(self.cityBuild['cityGrid'][0])]
 		self.city = []  # the main array for holding the current population state
 		self.neighborhoodData = []
+		self.evaluate(write=True)
+
+	def evaluate(self, write=False):
+		if write:
+			self.text_file = open("Output.txt", "w")
 		self.createPopulation(new=True)  # if new is False, will use the saved population
-		self.output(self.city, write=False) # prints the current state of the city
+		self.output(self.city, 'race', message='initial', write=write, headerOn=True) # prints the current state of the city
+		self.output(self.city, 'income', message='initial', write=write) # prints the current state of the city
 		first = True
 		for a in xrange(self.iterations):
 			self.tester = []
 			unHappyMovers = self.moveThroughTime()
 			if first:
 				first = False
-				print self.neighborhoodData
+				# print self.neighborhoodData
 			# print max(self.tester), min(self.tester)
 			print str(a)+' ('+str(unHappyMovers)+')',
 		print 'Finished'
-		print self.neighborhoodData
+		# print self.neighborhoodData
 		print max(self.tester), min(self.tester)
-		self.output(self.city) # prints the current state of the city
+		self.output(self.city, 'race', message='final', write=write) # prints the current state of the city
+		self.output(self.city, 'income', message='final', write=write) # prints the current state of the city
+		if write:
+			self.text_file.close()
+			print 'Saved'
 
 	def createPopulation(self, new=False):
 		layoutIndex = 0
@@ -237,24 +247,22 @@ class Neighborhood(object):
 		pSoc = int(person['income'])
 		self.tester.append((pSoc/float(max(nSoc, 1))-1))
 		newSoc = pSoc*((pSoc/float(max(nSoc, 1))-1)*.022+1)
-		# newSoc = pSoc
 		self.tester.append(newSoc)
-		# print float(max(nSoc, 1))
 		person['income'] = newSoc
 		return person
 
-	def output(self, state, write=False):
+	def output(self, state, kind, message='', write=False, headerOn=False):
 		def personReturn(p, kind):
 			temp = None
 			if kind == 'race':
 				if p == {}:
-					temp = ' '
+					temp = '  '
 				elif p is None:
-					temp = '.'
+					temp = ' .'
 				elif p['race'] == 'black':
-					temp = 'B'
+					temp = ' B'
 				elif p['race'] == 'white':
-					temp = 'W'
+					temp = ' W'
 			elif kind == 'income':
 				if p == {}:
 					temp = '  '
@@ -281,7 +289,7 @@ class Neighborhood(object):
 					temp2 = []
 					for cCol in xrange(self.cityBuild['neighborHoodLayout'][1]):
 						item = pState[nRow][nCol][cRow][cCol]
-						temp2.append(personReturn(item, 'race'))
+						temp2.append(personReturn(item, kind))
 					temp.append(' '.join(temp2))
 				master.append('     '.join(temp))
 			if nRow != self.cityBuild['cityGrid'][0] - 1:
@@ -289,18 +297,20 @@ class Neighborhood(object):
 					'' for a in xrange(self.cityBuild['cityGrid'][1]*self.cityBuild['neighborHoodLayout'][1]+(self.cityBuild['cityGrid'][1]-1)*2)
 					])+' ' for a in xrange(2)]))
 		if write:
-			text_file = open("Output.txt", "w")
 			tempHead = {}
 			for key in self.popStats.keys():
 				if key not in ['blackSocDistr', 'whiteSocDistr']:
 					tempHead[key] = self.popStats[key]
 			header = json.dumps([{'iterations': self.iterations}, tempHead, json.dumps(self.cityBuild)])
-			text_file.write(header)
-			body = '\n'+'\n'.join(master)
-			text_file.write(body)
-			text_file.close()
+			if headerOn:
+				self.text_file.write(header)
+			mes = '\nmessage: '+message
+			self.text_file.write(mes)
+			body = '\n'+'\n'.join(master)+'\n'+'\n'
+			self.text_file.write(body)
 		else:
 			print 'Number of people:', len([per for neigh in state for row in neigh for per in row if per != {}])
+			print message
 			for row in master:
 				print row
 			print ''
