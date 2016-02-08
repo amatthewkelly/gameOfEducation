@@ -8,6 +8,7 @@ class Neighborhood(object):
 	def __init__(self):
 		super(Neighborhood, self).__init__()
 		# self.cityBuild['neighborHoodLayout'] = open('Data Files/neighborHoodLayout.txt').read()
+		self.iterations = 1
 		self.cityBuild = {
 			'neighborHoodLayout': [11, 11],  # this is our neighborhood layout (grid)
 			'cityGrid': [1, 3],  # this is our city layout (grid)
@@ -33,10 +34,10 @@ class Neighborhood(object):
 			)] for a in xrange(self.cityBuild['cityGrid'][0])]
 		self.city = []  # the main array for holding the current population state
 		self.createPopulation(new=True)  # if new is False, will use the saved population
-		self.output(self.city) # prints the current state of the city
-		for a in xrange(1):
+		self.output(self.city, write=False) # prints the current state of the city
+		for a in xrange(self.iterations):
 			self.moveThroughTime()
-		self.output(self.city) # prints the current state of the city
+		# self.output(self.city) # prints the current state of the city
 
 	def createPopulation(self, new=False):
 		layoutIndex = 0
@@ -117,7 +118,7 @@ class Neighborhood(object):
 					if person is not None:
 						if person != {}:
 							moveWanted, neighbors = self.wantToMove(person, n, r, c, 'leave')
-							# self.city[r][c] = self.updateValuesFromSorrounding(person, neighbors, r, c)
+							self.city[n][r][c] = self.updateValuesFromSorrounding(person, neighbors, r, c)
 							if moveWanted:
 								spotsToBeOpened.append([n, r, c])
 								openSpots.append([n, r, c])
@@ -229,7 +230,16 @@ class Neighborhood(object):
 					'' for a in xrange(self.cityBuild['cityGrid'][1]*self.cityBuild['neighborHoodLayout'][1]+(self.cityBuild['cityGrid'][1]-1)*2)
 					])+' ' for a in xrange(2)]))
 		if write:
-			print 'write'
+			text_file = open("Output.txt", "w")
+			tempHead = {}
+			for key in self.popStats.keys():
+				if key not in ['blackSocDistr', 'whiteSocDistr']:
+					tempHead[key] = self.popStats[key]
+			header = json.dumps([{'iterations': self.iterations}, tempHead, json.dumps(self.cityBuild)])
+			text_file.write(header)
+			body = '\n'+'\n'.join(master)
+			text_file.write(body)
+			text_file.close()
 		else:
 			print 'Number of people:', len([per for neigh in state for row in neigh for per in row if per != {}])
 			for row in master:
