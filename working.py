@@ -13,13 +13,15 @@ class Neighborhood(object):
 		self.diverseReqToLeave = [.2, .7]
 		self.diverseReqToEnter = [.2, .7]
 		self.uniqID = 0  # iterate to give people unique ID #s
-		self.percDiversCare = 0.0
+		self.percDiversCare = 0.1
 		self.racePercentages = [.33, .33]  # white, black, the rest are empty spots
+		self.streets = [[6,7,8], [10,11,12]]
+		# self.streets = [[],[]]
 		# self.tester = [[.3, .7, .3], [.7, .3, .1], [.7, .1, .7]]
 		self.main = []
 		self.createPopulation()
 		self.output(self.main)
-		for a in xrange(20):
+		for a in xrange(10):
 			self.moveThroughTime()
 		self.output(self.main)
 
@@ -27,7 +29,10 @@ class Neighborhood(object):
 		for a in xrange(self.nl[0]):
 			column = []
 			for b in xrange(self.nl[1]):
-				person  = self.createPerson(a, b)  # option for static testing ", self.tester[a][b]"
+				if a not in self.streets[0] and b not in self.streets[1]:
+					person  = self.createPerson(a, b)  # option for static testing ", self.tester[a][b]"
+				else:
+					person = None
 				column.append(person)
 			self.main.append(column)
 
@@ -62,14 +67,15 @@ class Neighborhood(object):
 		# checks who wants to move and finds all open spots...
 		for r, row in enumerate(self.main):
 			for c, person in enumerate(row):
-				if person != {}:
-					wantToMove = self.wantsToMove(person, r, c, 'leave')
-					if wantToMove:
-						spotsToBeOpened.append([r,c])
+				if person is not None:
+					if person != {}:
+						wantToMove = self.wantsToMove(person, r, c, 'leave')
+						if wantToMove:
+							spotsToBeOpened.append([r,c])
+							openSpots.append([r, c])
+							movers.append(person)
+					else:
 						openSpots.append([r, c])
-						movers.append(person)
-				else:
-					openSpots.append([r, c])
 		for r, c in spotsToBeOpened:
 			self.main[r][c] = {}
 		shuffle(openSpots)  # randomizes the orderin of the move locations
@@ -97,8 +103,8 @@ class Neighborhood(object):
 		neighbors = []
 		test = []
 		test1 = []
-		for row in xrange(r-1, r+2):
-			for col in xrange(c-1, c+2):
+		for row in xrange(r-2, r+3):
+			for col in xrange(c-2, c+3):
 				if row > -1 and row < self.nl[0]:
 					if col > -1 and col < self.nl[1]:
 						if row != r or col != c:
@@ -109,10 +115,11 @@ class Neighborhood(object):
 								test.append([row, col])
 		race = []
 		for n in neighbors:
-			if n['race'] == person['race']:
-				race.append(1)
-			else:
-				race.append(0)
+			if n is not None:
+				if n['race'] == person['race']:
+					race.append(1)
+				else:
+					race.append(0)
 		percSame = np.average(race)
 		percDif = 1-percSame
 		if kind == 'leave':
@@ -139,14 +146,16 @@ class Neighborhood(object):
 			line = []
 			for p in row:
 				result = ' '
-				if p.get('race') == 'black':
-					result = 'B'
-				elif p.get('race') == 'white':
-					result = 'W'
-				# if p.get('careDiv') == True:
-				# 	result = 'D'
-				# elif p.get('careDiv') == False:
-				# 	result = 'R'
+				if p is None:
+					result = '.'
+				# elif p.get('race') == 'black':
+				# 	result = 'B'
+				# elif p.get('race') == 'white':
+				# 	result = 'W'
+				elif p.get('careDiv') == True:
+					result = 'D'
+				elif p.get('careDiv') == False:
+					result = 'R'
 				line.append(result)
 			print ' '.join(line)
 		print ''
