@@ -8,19 +8,24 @@ class Neighborhood(object):
 	def __init__(self):
 		super(Neighborhood, self).__init__()
 		# self.cityBuild['neighborHoodLayout'] = open('Data Files/neighborHoodLayout.txt').read()
-		self.iterations = 100
+		self.iterations = 10
 		self.movingThreshold = 40000
 		self.cityBuild = {
 			'neighborHoodLayout': [11, 11],  # this is our neighborhood layout (grid)
-			'cityGrid': [3, 3],  # this is our city layout (grid)
-			'streets': []  # specifies street locations within neighborhoods ([row], [column])
+			'cityGrid': [3, 6],  # this is our city layout (grid)
+			'streets': [5]  # specifies street locations within neighborhoods ([row], [column])
 			}
 		self.popStats = {
-			# the below are racial diversity thresholds. The first variable in each is the amount
-			# of diversity you require to live in that space if you care about diversity (positive diversity), and the latter 
-			# is the level of diversity at which you will leave if you don't care about diversity (negative diversity).
-			'diverseReqToLeave': [.2, .5],
-			'diverseReqToEnter': [.2, .5],
+			'diverseReqToLeave': {
+				'positive': .2,  # amount of diversity you require to live in that space if you care about diversity (positive diversity)
+				'neighbors': .5,  # level of diversity at which you will leave if you don't care about diversity (negative diversity)
+				'neighborhood': .5  # diversity required of your neighborhood (negative diversity)
+				},
+			'diverseReqToEnter': {
+				'positive': .2,
+				'neighbors': .5,
+				'neighborhood': .5
+				},
 			'uniqID': 0,  # iterate to give people unique ID #s
 			'percDiversCare': 0.0,  # percentage of people who care about diversity
 			'racePercentages': [.33, .33],  # white, black, the rest are empty spots
@@ -42,10 +47,12 @@ class Neighborhood(object):
 		first = True
 		for a in xrange(self.iterations):
 			self.tester = []
-			self.moveThroughTime()
+			unHappyMovers = self.moveThroughTime()
 			if first:
 				first = False
 				print self.neighborhoodData
+			print str(a)+' ('+str(unHappyMovers)+')',
+		print 'Finished'
 		print self.neighborhoodData
 		print max(self.tester), min(self.tester)
 		self.output(self.city) # prints the current state of the city
@@ -163,6 +170,7 @@ class Neighborhood(object):
 			self.city[newSpot[0]][newSpot[1]][newSpot[2]] = movers[pers]
 			openSpots.remove(newSpot)
 			movers.pop(pers)
+		return noAcceptableSpot
 		# print 'No good spots #:', noAcceptableSpot
 
 	def wantToMove(self, person, n1, r, c, kind):
@@ -184,24 +192,23 @@ class Neighborhood(object):
 					race.append(0)
 		percSame = np.average(race)
 		percDif = 1-percSame
+		neighbSame = self.neighborhoodData[n1]['percBlack']
+		if person['race'] == 'white':
+			neighbSame = 1 - neighbSame
 		# print percSame/float(self.popStats['diverseReqToEnter'][1]), percDif/float(self.popStats['diverseReqToEnter'][0])
 		if kind == 'leave':
 			wantToMove = False
-			percSameReqMin = self.popStats['diverseReqToLeave'][1]
-			percDifReqMin = self.popStats['diverseReqToLeave'][0]
-			if person['careDiv'] and percDif < percDifReqMin:
+			if person['careDiv'] and percDif < self.popStats['diverseReqToLeave']['positive']:
 				wantToMove = True
-			elif percSame < percSameReqMin:
+			elif percSame < self.popStats['diverseReqToLeave']['neighbors'] or neighbSame < self.popStats['diverseReqToLeave']['neighborhood']:
 				wantToMove = True
 			if person['income'] < self.movingThreshold:
 				wantToMove = False
 		elif kind == 'enter':
 			wantToMove = True
-			percSameReqMin = self.popStats['diverseReqToEnter'][1]
-			percDifReqMin = self.popStats['diverseReqToEnter'][0]
-			if person['careDiv'] and percDif < percDifReqMin:
+			if person['careDiv'] and percDif < self.popStats['diverseReqToLeave']['positive']:
 				wantToMove = False
-			elif percSame < percSameReqMin:
+			elif percSame < self.popStats['diverseReqToLeave']['neighbors'] or neighbSame < self.popStats['diverseReqToLeave']['neighborhood']:
 				wantToMove = False
 			if person['income'] < self.neighborhoodData[n1]['socio']:
 				wantToMove = False
