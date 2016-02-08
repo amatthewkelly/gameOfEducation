@@ -8,21 +8,21 @@ class Neighborhood(object):
 	def __init__(self):
 		super(Neighborhood, self).__init__()
 		# self.cityBuild['neighborHoodLayout'] = open('Data Files/neighborHoodLayout.txt').read()
-		self.iterations = 10
+		self.iterations = 30
 		self.movingThreshold = 50000
 		self.cityBuild = {
-			'neighborHoodLayout': [11, 11],  # this is our neighborhood layout (grid)
-			'cityGrid': [5, 5],  # this is our city layout (grid)
+			'neighborHoodLayout': [100, 100],  # this is our neighborhood layout (grid)
+			'cityGrid': [1, 1],  # this is our city layout (grid)
 			'streets': []  # specifies street locations within neighborhoods ([row], [column])
 			}
 		self.popStats = {
 			'diverseReqToLeave': {
-				'positive': .5,  # amount of diversity you require to live in that space if you care about diversity (positive diversity)
+				'positive': .3,  # amount of diversity you require to live in that space if you care about diversity (positive diversity)
 				'neighbors': .5,  # level of diversity at which you will leave if you don't care about diversity (negative diversity)
 				'neighborhood': .3  # diversity required of your neighborhood (negative diversity)
 				},
 			'diverseReqToEnter': {
-				'positive': .5,
+				'positive': .3,
 				'neighbors': .5,
 				'neighborhood': .3
 				},
@@ -36,7 +36,7 @@ class Neighborhood(object):
 			}
 		# the below places streets into a conveninet format for latter calculations...
 		self.cityLayout = [[[
-			self.cityBuild['streets'], [2+(b*3) for b in xrange((self.cityBuild['neighborHoodLayout'][0]-2)/3)]
+			self.cityBuild['streets'], []
 			] for b in xrange(
 				self.cityBuild['cityGrid'][1]
 				)]for a in xrange(self.cityBuild['cityGrid'][0])]
@@ -45,7 +45,7 @@ class Neighborhood(object):
 		self.runningNData = []
 		self.evaluate()
 
-	def evaluate(self, write=False):
+	def evaluate(self, write=True):
 		if write:
 			self.text_file = open("Output.txt", "w")
 		self.createPopulation(new=True)  # if new is False, will use the saved population
@@ -63,10 +63,10 @@ class Neighborhood(object):
 		print 'Finished\n'
 		self.stateOutput(self.city, 'race', message='final', write=write) # prints the current state of the city
 		self.stateOutput(self.city, 'income', message='final', write=write) # prints the current state of the city
-		# self.statsOutput()  # outPuts neighborhood specific stats...
 		if write:
 			self.text_file.close()
 			print 'Saved'
+		self.statsOutput()  # outPuts neighborhood specific stats...
 
 	def createPopulation(self, new=False):
 		layoutIndex = 0
@@ -327,8 +327,8 @@ class Neighborhood(object):
 		x = np.array(range(len(self.runningNData)))
 		for y in master:
 			ax1.scatter(x, y)
-			# b, c = np.polyfit(x, y, 1)  # adds a regresstion line
-			# ax1.plot(x,  b*x + c, '-')  # a*x**2 +
+			b, c = np.polyfit(x, y, 1)  # adds a regresstion line
+			ax1.plot(x,  b*x + c, '-')  # a*x**2 +
 		plt.show()
 
 
