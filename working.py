@@ -1,6 +1,6 @@
 import numpy as np
 import json
-# import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt 
 from random import shuffle
 
 class Neighborhood(object):
@@ -8,11 +8,11 @@ class Neighborhood(object):
 	def __init__(self):
 		super(Neighborhood, self).__init__()
 		# self.cityBuild['neighborHoodLayout'] = open('Data Files/neighborHoodLayout.txt').read()
-		self.iterations = 30
-		self.movingThreshold = 60000
+		self.iterations = 10
+		self.movingThreshold = 50000
 		self.cityBuild = {
 			'neighborHoodLayout': [11, 11],  # this is our neighborhood layout (grid)
-			'cityGrid': [3, 5],  # this is our city layout (grid)
+			'cityGrid': [5, 5],  # this is our city layout (grid)
 			'streets': []  # specifies street locations within neighborhoods ([row], [column])
 			}
 		self.popStats = {
@@ -42,28 +42,28 @@ class Neighborhood(object):
 				)]for a in xrange(self.cityBuild['cityGrid'][0])]
 		self.city = []  # the main array for holding the current population state
 		self.neighborhoodData = []
-		self.evaluate(write=True)
+		self.runningNData = []
+		self.evaluate()
 
 	def evaluate(self, write=False):
 		if write:
 			self.text_file = open("Output.txt", "w")
 		self.createPopulation(new=True)  # if new is False, will use the saved population
-		self.output(self.city, 'race', message='initial', write=write, headerOn=True) # prints the current state of the city
-		self.output(self.city, 'income', message='initial', write=write) # prints the current state of the city
+		self.stateOutput(self.city, 'race', message='initial', write=write, headerOn=True) # prints the current state of the city
+		self.stateOutput(self.city, 'income', message='initial', write=write) # prints the current state of the city
 		first = True
 		for a in xrange(self.iterations):
 			self.tester = []
 			unHappyMovers = self.moveThroughTime()
 			if first:
-				first = False
-				# print self.neighborhoodData
-			# print max(self.tester), min(self.tester)
+				first = False	
+			x = [[b['percBlack'], b['socio']] for b in self.neighborhoodData]
+			self.runningNData.append(x)
 			print str(a)+' ('+str(unHappyMovers)+')',
-		print 'Finished'
-		# print self.neighborhoodData
-		print max(self.tester), min(self.tester)
-		self.output(self.city, 'race', message='final', write=write) # prints the current state of the city
-		self.output(self.city, 'income', message='final', write=write) # prints the current state of the city
+		print 'Finished\n'
+		self.stateOutput(self.city, 'race', message='final', write=write) # prints the current state of the city
+		self.stateOutput(self.city, 'income', message='final', write=write) # prints the current state of the city
+		# self.statsOutput()  # outPuts neighborhood specific stats...
 		if write:
 			self.text_file.close()
 			print 'Saved'
@@ -245,13 +245,11 @@ class Neighborhood(object):
 	def updateValuesFromArea(self, person, n):
 		nSoc = self.neighborhoodData[n]['socio']
 		pSoc = int(person['income'])
-		self.tester.append((pSoc/float(max(nSoc, 1))-1))
-		newSoc = pSoc*((pSoc/float(max(nSoc, 1))-1)*.022+1)
-		self.tester.append(newSoc)
+		newSoc = pSoc*((pSoc/float(max(nSoc, 1))-1)*.025+1)
 		person['income'] = newSoc
 		return person
 
-	def output(self, state, kind, message='', write=False, headerOn=False):
+	def stateOutput(self, state, kind, message='', write=False, headerOn=False):
 		def personReturn(p, kind):
 			temp = None
 			if kind == 'race':
@@ -316,6 +314,22 @@ class Neighborhood(object):
 			print ''
 			print '  '.join(['-' for a in self.city])
 			print ''
+
+	def statsOutput(self, write=False):
+		master = []
+		for n in xrange(len(self.runningNData[0])):
+			temp = []
+			for i in xrange(len(self.runningNData)):
+				temp.append(self.runningNData[i][n][1])
+			master.append(temp)
+		fig = plt.figure()
+		ax1 = fig.add_subplot(111)
+		x = np.array(range(len(self.runningNData)))
+		for y in master:
+			ax1.scatter(x, y)
+			# b, c = np.polyfit(x, y, 1)  # adds a regresstion line
+			# ax1.plot(x,  b*x + c, '-')  # a*x**2 +
+		plt.show()
 
 
 def main():
