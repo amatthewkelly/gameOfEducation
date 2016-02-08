@@ -8,8 +8,8 @@ class Neighborhood(object):
 	def __init__(self):
 		super(Neighborhood, self).__init__()
 		# self.nl = open('Data Files/neighborHoodLayout.txt').read()
-		self.nl = [5, 15]  # this is our neighborhood layout (grid)
-		self.cityGrid = [5, 3]  # this is our city layout (grid)
+		self.nl = [10, 10]  # this is our neighborhood layout (grid)
+		self.cityGrid = [3, 5]  # this is our city layout (grid)
 		# the below are racial diversity thresholds. The first variable in each is the amount
 		# of diversity you require to live in that space if you care about diversity (positive diversity), and the latter 
 		# is the level of diversity at which you will leave if you don't care about diversity (negative diversity).
@@ -23,7 +23,7 @@ class Neighborhood(object):
 		self.blackSocDistr = [int(b*100000) for b in [max(np.random.normal(loc=-2)+5, 0) for a in xrange(1000)] if b < 10]
 		self.whiteSocDistr = [int(b*100000) for b in [max(np.random.normal(loc=2)+5, 0) for a in xrange(1000)] if b < 10]
 		self.cityLayout = []
-		streets = [[], []]
+		streets = [[3, 6], [3, 6]]
 		for a in xrange(self.cityGrid[0]):
 			temp = []
 			for b in xrange(self.cityGrid[1]):
@@ -203,7 +203,7 @@ class Neighborhood(object):
 				if p == {}:
 					temp = ' '
 				elif p is None:
-					temp = '-'
+					temp = '.'
 				elif p['race'] == 'black':
 					temp = 'B'
 				elif p['race'] == 'white':
@@ -227,12 +227,12 @@ class Neighborhood(object):
 						item = pState[nRow][nCol][cRow][cCol]
 						temp2.append(personReturn(item, 'race'))
 					temp.append(' '.join(temp2))
-				print ' . . '.join(temp)
+				print '     '.join(temp)
 				# print ' '.join(temp)
 			if nRow != self.cityGrid[0] - 1:
-				print '\n'.join(['. '.join([
+				print '\n'.join(['  '.join([
 					'' for a in xrange(self.cityGrid[1]*self.nl[1]+(self.cityGrid[1]-1)*2)
-					])+'.' for a in xrange(2)])
+					])+' ' for a in xrange(2)])
 		print ''
 		print '  '.join(['-' for a in self.city])
 		print ''
