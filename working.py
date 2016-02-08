@@ -10,7 +10,7 @@ class Neighborhood(object):
 		# self.cityBuild['neighborHoodLayout'] = open('Data Files/neighborHoodLayout.txt').read()
 		self.cityBuild = {
 			'neighborHoodLayout': [11, 11],  # this is our neighborhood layout (grid)
-			'cityGrid': [3, 3],  # this is our city layout (grid)
+			'cityGrid': [1, 3],  # this is our city layout (grid)
 			'streets': [[3, 7], [3, 7]]  # specifies street locations within neighborhoods (row, column)
 			}
 		self.popStats = {
