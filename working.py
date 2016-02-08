@@ -8,23 +8,23 @@ class Neighborhood(object):
 	def __init__(self):
 		super(Neighborhood, self).__init__()
 		# self.cityBuild['neighborHoodLayout'] = open('Data Files/neighborHoodLayout.txt').read()
-		self.iterations = 10
-		self.movingThreshold = 40000
+		self.iterations = 25
+		self.movingThreshold = 60000
 		self.cityBuild = {
 			'neighborHoodLayout': [11, 11],  # this is our neighborhood layout (grid)
-			'cityGrid': [3, 6],  # this is our city layout (grid)
-			'streets': [5]  # specifies street locations within neighborhoods ([row], [column])
+			'cityGrid': [3, 3],  # this is our city layout (grid)
+			'streets': []  # specifies street locations within neighborhoods ([row], [column])
 			}
 		self.popStats = {
 			'diverseReqToLeave': {
-				'positive': .2,  # amount of diversity you require to live in that space if you care about diversity (positive diversity)
+				'positive': .3,  # amount of diversity you require to live in that space if you care about diversity (positive diversity)
 				'neighbors': .5,  # level of diversity at which you will leave if you don't care about diversity (negative diversity)
-				'neighborhood': .5  # diversity required of your neighborhood (negative diversity)
+				'neighborhood': .3  # diversity required of your neighborhood (negative diversity)
 				},
 			'diverseReqToEnter': {
-				'positive': .2,
-				'neighbors': .5,
-				'neighborhood': .5
+				'positive': .3,
+				'neighbors': .6,
+				'neighborhood': .4
 				},
 			'uniqID': 0,  # iterate to give people unique ID #s
 			'percDiversCare': 0.0,  # percentage of people who care about diversity
@@ -51,6 +51,7 @@ class Neighborhood(object):
 			if first:
 				first = False
 				print self.neighborhoodData
+			# print max(self.tester), min(self.tester)
 			print str(a)+' ('+str(unHappyMovers)+')',
 		print 'Finished'
 		print self.neighborhoodData
@@ -234,7 +235,9 @@ class Neighborhood(object):
 	def updateValuesFromArea(self, person, n):
 		nSoc = self.neighborhoodData[n]['socio']
 		pSoc = int(person['income'])
-		newSoc = nSoc*((pSoc/float(max(nSoc, 1))-1)*.02+1)
+		self.tester.append((pSoc/float(max(nSoc, 1))-1))
+		newSoc = pSoc*((pSoc/float(max(nSoc, 1))-1)*.022+1)
+		# newSoc = pSoc
 		self.tester.append(newSoc)
 		# print float(max(nSoc, 1))
 		person['income'] = newSoc
@@ -252,6 +255,15 @@ class Neighborhood(object):
 					temp = 'B'
 				elif p['race'] == 'white':
 					temp = 'W'
+			elif kind == 'income':
+				if p == {}:
+					temp = '  '
+				elif p is None:
+					temp = ' .'
+				else:
+					temp = str(int(np.floor(p['income']/float(100000))))
+					if len(temp) == 1:
+						temp = ' '+temp
 			return temp
 		curRow = 0
 		pState = []
