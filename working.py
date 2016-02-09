@@ -8,10 +8,10 @@ class Neighborhood(object):
 	def __init__(self):
 		super(Neighborhood, self).__init__()
 		# self.cityBuild['neighborHoodLayout'] = open('Data Files/neighborHoodLayout.txt').read()
-		self.iterations = 30
+		self.iterations = 10
 		self.movingThreshold = 50000
 		self.cityBuild = {
-			'neighborHoodLayout': [100, 100],  # this is our neighborhood layout (grid)
+			'neighborHoodLayout': [50, 50],  # this is our neighborhood layout (grid)
 			'cityGrid': [1, 1],  # this is our city layout (grid)
 			'streets': []  # specifies street locations within neighborhoods ([row], [column])
 			}
@@ -36,7 +36,7 @@ class Neighborhood(object):
 			}
 		# the below places streets into a conveninet format for latter calculations...
 		self.cityLayout = [[[
-			self.cityBuild['streets'], []
+			self.cityBuild['streets'], [2+(b*3) for b in xrange((self.cityBuild['neighborHoodLayout'][0]-2)/3)]
 			] for b in xrange(
 				self.cityBuild['cityGrid'][1]
 				)]for a in xrange(self.cityBuild['cityGrid'][0])]
@@ -46,6 +46,12 @@ class Neighborhood(object):
 		self.evaluate()
 
 	def evaluate(self, write=True):
+		print 'Evaluating with: (%d people) (%d neighborhoods) (%d iterations) (write = %s)' % (
+			self.cityBuild['neighborHoodLayout'][0]*self.cityBuild['neighborHoodLayout'][1]*self.cityBuild['cityGrid'][0]*self.cityBuild['cityGrid'][1],
+			self.cityBuild['cityGrid'][0]*self.cityBuild['cityGrid'][1],
+			self.iterations,
+			str(write)
+			)
 		if write:
 			self.text_file = open("Output.txt", "w")
 		self.createPopulation(new=True)  # if new is False, will use the saved population
@@ -66,7 +72,7 @@ class Neighborhood(object):
 		if write:
 			self.text_file.close()
 			print 'Saved'
-		self.statsOutput()  # outPuts neighborhood specific stats...
+		# self.statsOutput()  # outPuts neighborhood specific stats...
 
 	def createPopulation(self, new=False):
 		layoutIndex = 0
