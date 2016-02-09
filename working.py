@@ -8,8 +8,8 @@ class Neighborhood(object):
 	def __init__(self):
 		super(Neighborhood, self).__init__()
 		# self.cityBuild['neighborHoodLayout'] = open('Data Files/neighborHoodLayout.txt').read()
-		self.iterations = 10
-		self.movingThreshold = 50000
+		self.iterations = 40
+		self.movingThreshold = 10000
 		self.cityBuild = {
 			'neighborHoodLayout': [11, 11],  # this is our neighborhood layout (grid)
 			'cityGrid': [3, 3],  # this is our city layout (grid)
@@ -43,9 +43,9 @@ class Neighborhood(object):
 		self.city = []  # the main array for holding the current population state
 		self.neighborhoodData = []
 		self.runningNData = []
-		self.evaluate(write=False)
+		self.evaluate(write=False, new=False)
 
-	def evaluate(self, write=False):
+	def evaluate(self, write=False, new=True):
 		print 'Evaluating with: (%d spots) (%d neighborhoods) (%d iterations) (write = %s)' % (
 			self.cityBuild['neighborHoodLayout'][0]*self.cityBuild['neighborHoodLayout'][1]*self.cityBuild['cityGrid'][0]*self.cityBuild['cityGrid'][1],
 			self.cityBuild['cityGrid'][0]*self.cityBuild['cityGrid'][1],
@@ -54,7 +54,7 @@ class Neighborhood(object):
 			)
 		if write:
 			self.text_file = open("Output.txt", "w")
-		self.createPopulation(new=True)  # if new is False, will use the saved population
+		self.createPopulation(new=new)  # if new is False, will use the saved population
 		self.stateOutput(self.city, 'race', message='initial race', write=write, headerOn=True) # prints the current state of the city
 		self.stateOutput(self.city, 'income', message='initial income', write=write) # prints the current state of the city
 		first = True
@@ -100,6 +100,8 @@ class Neighborhood(object):
 			json.dump(self.city, open("testStartPopulation.txt", 'w'))
 		else:
 			self.city = json.load(open("testStartPopulation.txt"))
+			for n in xrange(np.sum([len(a) for a in self.cityLayout])):
+				self.neighborhoodData.append({})
 
 	def createPerson(self, a, b, neighborhood):
 		x = np.random.random()
@@ -218,6 +220,8 @@ class Neighborhood(object):
 			if person['careDiv'] and percDif < self.popStats['diverseReqToLeave']['positive']:
 				wantToMove = True
 			elif percSame < self.popStats['diverseReqToLeave']['neighbors'] or neighbSame < self.popStats['diverseReqToLeave']['neighborhood']:
+				wantToMove = True
+			if person['income'] > self.neighborhoodData[n1]['socio'] and self.neighborhoodData[n1]['socio'] <= max([self.neighborhoodData[n]['socio'] for n in xrange(len(self.neighborhoodData))]):
 				wantToMove = True
 			if person['income'] < self.movingThreshold:
 				wantToMove = False
