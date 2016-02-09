@@ -11,8 +11,8 @@ class Neighborhood(object):
 		self.iterations = 10
 		self.movingThreshold = 50000
 		self.cityBuild = {
-			'neighborHoodLayout': [50, 50],  # this is our neighborhood layout (grid)
-			'cityGrid': [1, 1],  # this is our city layout (grid)
+			'neighborHoodLayout': [11, 11],  # this is our neighborhood layout (grid)
+			'cityGrid': [3, 3],  # this is our city layout (grid)
 			'streets': []  # specifies street locations within neighborhoods ([row], [column])
 			}
 		self.popStats = {
@@ -43,10 +43,10 @@ class Neighborhood(object):
 		self.city = []  # the main array for holding the current population state
 		self.neighborhoodData = []
 		self.runningNData = []
-		self.evaluate()
+		self.evaluate(write=False)
 
-	def evaluate(self, write=True):
-		print 'Evaluating with: (%d people) (%d neighborhoods) (%d iterations) (write = %s)' % (
+	def evaluate(self, write=False):
+		print 'Evaluating with: (%d spots) (%d neighborhoods) (%d iterations) (write = %s)' % (
 			self.cityBuild['neighborHoodLayout'][0]*self.cityBuild['neighborHoodLayout'][1]*self.cityBuild['cityGrid'][0]*self.cityBuild['cityGrid'][1],
 			self.cityBuild['cityGrid'][0]*self.cityBuild['cityGrid'][1],
 			self.iterations,
@@ -55,8 +55,8 @@ class Neighborhood(object):
 		if write:
 			self.text_file = open("Output.txt", "w")
 		self.createPopulation(new=True)  # if new is False, will use the saved population
-		self.stateOutput(self.city, 'race', message='initial', write=write, headerOn=True) # prints the current state of the city
-		self.stateOutput(self.city, 'income', message='initial', write=write) # prints the current state of the city
+		self.stateOutput(self.city, 'race', message='initial race', write=write, headerOn=True) # prints the current state of the city
+		self.stateOutput(self.city, 'income', message='initial income', write=write) # prints the current state of the city
 		first = True
 		for a in xrange(self.iterations):
 			self.tester = []
@@ -67,8 +67,8 @@ class Neighborhood(object):
 			self.runningNData.append(x)
 			print str(a)+' ('+str(unHappyMovers)+')',
 		print 'Finished\n'
-		self.stateOutput(self.city, 'race', message='final', write=write) # prints the current state of the city
-		self.stateOutput(self.city, 'income', message='final', write=write) # prints the current state of the city
+		self.stateOutput(self.city, 'race', message='final race', write=write) # prints the current state of the city
+		self.stateOutput(self.city, 'income', message='final income', write=write) # prints the current state of the city
 		if write:
 			self.text_file.close()
 			print 'Saved'
